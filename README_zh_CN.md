@@ -26,7 +26,7 @@ on Mobile:
 
 ✈️ 多平台: Android, Windows, macOS and Linux
 
-💻 自适应多个屏幕尺寸,多种颜色主题可供选择
+💻 自适应屏幕尺寸,多种颜色主题可供选择
 
 💡 基本 Material You 设计, 类[Surfboard](https://github.com/getsurfboard/surfboard)用户界面
 
