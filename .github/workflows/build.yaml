@@ -37,20 +37,26 @@ jobs:
       - name: Generate Launcher Icons
         run: flutter pub run flutter_launcher_icons
 
-      # ▼▼▼ 新增的“空城计”步骤：造假文件骗过脚本 ▼▼▼
+      # ▼▼▼ 核心修复：生成全套真实/伪装文件 ▼▼▼
       - name: Create Dummy Config
         run: |
+          # 1. 生成 local.properties
           echo "keyAlias=androiddebugkey" > android/local.properties
           echo "storePassword=android" >> android/local.properties
           echo "keyPassword=android" >> android/local.properties
-          # 创建一个空的密钥文件，防止找不到文件报错
-          touch android/app/keystore.jks
+          
+          # 2. 生成一个真实的 Debug 密钥 (防止脚本校验文件格式失败)
+          keytool -genkey -v -keystore android/app/keystore.jks -keyalg RSA -keysize 2048 -validity 10000 -alias androiddebugkey -storepass android -keypass android -dname "CN=Android Debug,O=Android,C=US"
+          
+          # 3. 生成伪造的 google-services.json (防止 Firebase 检查报错)
+          echo '{"project_info":{"project_number":"000000000000","project_id":"dummy-project","storage_bucket":"dummy-bucket"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000","android_client_info":{"package_name":"com.follow.clash"}},"oauth_client":[],"api_key":[{"current_key":"dummy-api-key"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}]}' > android/app/google-services.json
 
       - name: Setup Android
         run: dart setup.dart android --env stable
 
       - name: Build Android App
-        run: flutter build apk --release --no-codesign
+        # 既然我们用的是 Debug 密钥，就打 Debug 包或者允许不签名，这里用 release 模式但配合上面的 Debug 密钥
+        run: flutter build apk --release
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
